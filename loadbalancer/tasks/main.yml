@@ -1,0 +1,12 @@
+
+- name: Install base tools
+  apt: name={{ item }} state=present
+       update_cache=yes
+  with_items:
+   - traceroute
+   - gcc
+   - screen
+   - unzip
+   - zip
+
+
