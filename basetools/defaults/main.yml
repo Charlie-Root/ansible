@@ -1,0 +1,59 @@
+---
+dns_nameservers: ['8.8.8.8', '8.8.4.4']
+dns_remove_resolvconf: true
+dns_domain: "wipabv.net"
+
+fail2ban_service_enabled: yes
+
+# Allowed setting are: started, stopped
+fail2ban_service_state: started
+
+# Allowed setting are: installed, latest
+fail2ban_pkg_state: installed
+
+# "ignoreip" can be an IP address, a CIDR mask or a DNS host
+fail2ban_config_ignoreip: 127.0.0.1/8, 171.25.179.111/32
+fail2ban_config_bantime: 3600
+fail2ban_config_maxretry: 3
+fail2ban_config_destemail: root@localhost
+
+# Jails
+fail2ban_config_jail_ssh_enabled: yes
+fail2ban_config_jail_sshddos_enabled: yes
+
+###############
+#
+#	NTP config
+#
+##########
+ntp_pkg_state: 'installed'
+ntp_service_state: 'started'
+ntp_service_enabled: 'yes'
+
+ntp_config_server: [ '0.ntp.wipabv.net', '1.ntp.wipabv.net']
+ntp_config_restrict:
+- '-4 default kod notrap nomodify nopeer noquery'
+- '-6 default kod notrap nomodify nopeer noquery'
+- '127.0.0.1'
+- '::1'
+
+ntp_config_listen:
+- '127.0.0.1'
+
+ntp_config_filegen:
+- 'loopstats file loopstats type day enable'
+- 'peerstats file peerstats type day enable'
+- 'clockstats file clockstats type day enable'
+
+ntp_config_statistics: 'loopstats peerstats clockstats'
+ntp_config_crypto: 'no'
+ntp_config_includefile: 'no'
+ntp_config_keys: 'no'
+ntp_config_trustedkey: 'no'
+ntp_config_requestkey: 'no'
+ntp_config_controlkey: 'no'
+ntp_config_broadcast: 'no'
+ntp_config_broadcastclient: 'no'
+ntp_config_multicastclient: 'no'
+ntp_service_name: ntp
+ntp_config_driftfile: /var/lib/ntp/ntp.drift

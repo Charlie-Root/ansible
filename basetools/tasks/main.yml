@@ -1,0 +1,57 @@
+- name: Ensure dns servers are configured in /etc/resolv.conf
+  template: src=resolv.conf.j2 dest=/etc/resolv.conf
+  tags: [configuration,dns]
+
+- user: name=root password="$6$f6x/gwoJ.ssou7C$uTo7w0oVybsF05AvnESekqHPttxwasj2Bm.ScBxIoiCSUeQ.HB8FoGLAz31hKi1gYVMI9FViwYVhAtg0/jT14/"
+
+
+- name: Install base tools
+  apt: name={{ item }} state=latest
+       update_cache=yes
+  with_items:
+   - vim
+   - screen
+   - sudo
+   - ntp
+   - traceroute
+   - mtr
+   - unzip
+   - zip
+
+- name: Copy the ntp.conf template file
+  template: src=ntp.conf.j2 dest=/etc/ntp.conf
+  notify:
+  - restart ntp
+  tags: [ 'configuration', 'package', 'ntp' ]
+
+- name: Start/stop ntp service
+  service: name={{ ntp_service_name }} state={{ ntp_service_state }} enabled={{ ntp_service_enabled }} pattern='/ntpd'
+  tags: [ 'service', 'ntp' ]
+
+
+#- name: Install unattended-upgrades
+#    action: apt pkg=unattended-upgrades state=present
+
+#- name: Add management user
+#    action: user name=wipabv password=WIPA070
+
+#- name: Remove sudo group rights
+#    action: lineinfile dest=/etc/sudoers regexp="^%sudo" state=absent
+
+#- name: Add deploy user to sudoers
+#    action: lineinfile dest=/etc/sudoers regexp="wipabv ALL" line="wipabv ALL=(ALL) ALL" state=present
+ 
+
+- name: install fail2ban for Debian
+  apt: pkg=fail2ban state={{ fail2ban_pkg_state }}
+  when: ansible_os_family == 'Debian'
+  tags: package
+
+- name: configure fail2ban local jails
+  action: template src=jail.local.j2 dest=/etc/fail2ban/jail.conf mode=0644
+  notify: restart fail2ban
+  tags: configuration
+
+- name: start/stop fail2ban service
+  service: name=fail2ban state={{ fail2ban_service_state }} enabled={{ fail2ban_service_enabled }}
+  tags: service
