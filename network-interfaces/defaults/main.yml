@@ -1,0 +1,17 @@
+---
+# File: main.yml
+# Type: defaults
+# Part: Transmission
+
+# interfaces_eth0_inet:
+#   - address: 10.0.1.10
+#   - network: 10.0.1.0
+#   - broadcast: 10.0.1.255
+#   - gateway: 10.0.1.1
+
+# interfaces_eth0_inet_failovers:
+#   - 10.0.1.9
+
+# interfaces_eth0_inet6:
+#   - address: fe00:5300:60:1C47::1
+#   - gateway: fe00:5300:60:1Cff:ff:ff:ff:ff

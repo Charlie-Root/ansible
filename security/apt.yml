@@ -1,0 +1,80 @@
+---
+# File: apt.yml
+# Type: task
+# Part: Aptitude
+
+# - name: Aptitude | Configure Proxy
+#   shell: "echo 'Acquire::http { Proxy \"{{ apt_proxy }}\"; };\n{{ apt_proxy_extra | default() }}' > /etc/apt/apt.conf.d/01proxy"
+#   when: apt_proxy is defined
+
+- name: Aptitude | Configure Proxy
+  template: src=apt_apt.conf.d_01proxy.j2 dest="/etc/apt/apt.conf.d/01proxy" owner=root group=root mode=0644
+  when: apt_proxy is defined and apt_proxy != "" and not apt_remove_proxy|bool
+  tags: system_apt_configure_proxy
+  register: result
+
+- name: Aptitude | Remove Proxy
+  file: dest="/etc/apt/apt.conf.d/01proxy" state=absent
+  when: apt_remove_proxy|bool
+  tags: system_apt_configure_proxy
+  register: result
+
+# - name: Aptitude | Deploy environment
+#   template: src=environment.j2 dest=/etc/environment owner=root group=root mode=0644
+#   when: apt_http_proxy is defined
+
+- name: Aptitude | Configure Periodic Upgrades
+  template: src=apt_apt.conf.d_10periodic.j2 dest="/etc/apt/apt.conf.d/10periodic" owner=root group=root mode=0644
+  when: apt_periodic is defined
+
+- name: Aptitude | Deploy sources.list
+  when: ansible_architecture == 'x86_64'
+  template: src=apt_sources.list.j2 dest="/etc/apt/sources.list" owner=root group=root mode=0644
+  register: result
+
+- name: Aptitude | Deploy ARM sources.list
+  when: ansible_architecture == 'armv7l'
+  template: src=apt_sources.list_arm.j2 dest="/etc/apt/sources.list" owner=root group=root mode=0644
+  register: result
+
+- name: Aptitude | Install pyton-apt
+  apt: name=python-apt state=present
+  when: apt_install_python_apt|bool
+
+- name: Aptitude | Force update cache
+  apt: update_cache=yes
+  when: result|changed and apt_update_cache|bool
+
+- name: Aptitude | Clear apt lists
+  when: apt_clear_lists|bool
+  shell: rm -rf /var/lib/apt/lists/*
+
+- name: Aptitude | Update cache
+  when: apt_update_cache|bool
+  apt: update_cache=yes cache_valid_time=3600
+  tags: system_apt_update
+
+- name: Aptitude | Deploy manager_release-upgrades
+  template: src=update-manager_release-upgrades.j2 dest="/etc/update-manager/release-upgrades" owner=root group=root mode=0644
+
+- name: Aptitude | Upgrade all packages to the latest version
+  when: apt_dist_upgrade|bool
+  apt: upgrade=dist force=yes
+
+- name: Aptitude | Upgrade HWE stack
+  when: ansible_architecture == "x86_64" and apt_upgrade_kernel|bool and ansible_lsb.major_release|int < 16
+  shell: apt-get install -f -y $(hwe-support-status --show-replacements)
+  tags: system_apt_kernel
+# linux-generic-lts-xenial linux-image-generic-lts-xenial libwayland-egl1-mesa-lts-xenial libgl1-mesa-glx-lts-xenial xserver-xorg-lts-xenial
+# GRUB_DEFAULT="1>2"
+# "ansible_kernel": "4.2.0-34-generic",
+# when: "'4.4.0' in {{ ansible_kernel }}"
+
+- name: Aptitude | Upgrade HWE stack
+  when: ansible_architecture == "x86_64" and apt_upgrade_kernel|bool and ansible_distribution_major_version|int == 16
+  apt: name=linux-generic-hwe-16.04-edge
+  tags: system_apt_kernel
+
+- name: Aptitude | Remove unused packages
+  when: apt_autoremove|bool
+  shell: apt-get autoremove -y
