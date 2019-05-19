@@ -1,0 +1,9 @@
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: Clean up Downloads
+    win_cleanup:
+      downloads: yes
+      system_temp: yes
+      temp: yes
+      user_temp: yes

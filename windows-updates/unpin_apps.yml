@@ -1,0 +1,54 @@
+- name: Unpin all apps
+    win_shell: |
+      foreach ($item in (New-Object -Com Shell.Application).NameSpace('shell:::{4234d49b-0245-4df3-b780-3893943456e1}').Items()) {
+        foreach ($verb in $item.Verbs()) {
+          Write-Host "Verb $($verb.Name) -- App $($item.Name)"
+          if ($verb.Name -match 'Van Start &losmaken|Van taa&kbalk losmaken') {
+            $verb.DoIt()
+            Write-Host "App $($item.Name) Verb $($verb.Name)"
+          }
+        }
+      }
+
+      function Unpin($app) {
+        try {
+          foreach ($item in (New-Object -Com Shell.Application).NameSpace('shell:::{4234d49b-0245-4df3-b780-3893943456e1}').Items()) {
+            if ($item.Name -eq $app) {
+              foreach ($verb in $item.Verbs()) {
+                if ($verb.Name.replace('&','') -match 'Van "Start" losmaken|Von "Start" lösen|Unpin from Start') {
+                    $verb.DoIt()
+                }
+              }
+            }
+          }
+        } catch {
+          Write-Error "Error Pinning/Unpinning App! (App-Name correct?)"
+        }
+      }
+
+      Unpin "Mail"
+      Unpin "Store"
+      Unpin "Calendar"
+      Unpin "Microsoft Edge"
+      Unpin "Photos"
+      Unpin "Cortana"
+      Unpin "Weather"
+      Unpin "Phone Companion"
+      Unpin "Twitter"
+      Unpin "Skype Video"
+      Unpin "Candy Crush Soda Saga"
+      Unpin "xbox"
+      Unpin "Groove music"
+      Unpin "movies & tv"
+      Unpin "microsoft solitaire collection"
+      Unpin "money"
+      Unpin "get office"
+      Unpin "onenote"
+      Unpin "news"
+    become: yes
+    vars:
+      ansible_become_user: '{{ user }}'
+      become_user: '{{ user }}'
+      ansible_become_password: ''
+      become_password: ''
+    tags: tiles
