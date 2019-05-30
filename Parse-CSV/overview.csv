@@ -1,0 +1,4 @@
+name,epg,bd,vlanid,state,mtu,inet
+bla,bla,bla,1,up,1500,192.168.1.1
+bla,bla,bla,2,up,1500,192.168.1.2
+bla,bla,bla,3,up,9000,192.168.1.3

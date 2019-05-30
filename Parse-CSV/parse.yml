@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Parse CSV and output Yaml
+      command: "python csv_to_yaml.py overview.csv"
+ 
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
+  vars_files:
+    - overview.csv.yml
+  tasks:
+    - debug: var=csv_data
